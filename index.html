@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>KTMDrip</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <span class="logo" onclick="goTo('home')">KTMDrip</span>
+    <div class="nav-links">
+      <span class="nav-link" data-page="men" onclick="goTo('men')">Men</span>
+      <span class="nav-link" data-page="women" onclick="goTo('women')">Women</span>
+      <span class="nav-link sale-link" data-page="sale" onclick="goTo('sale')">🔥 Sale</span>
+      <span class="nav-link" data-page="lifestyle" onclick="goTo('lifestyle')">Lifestyle</span>
+    </div>
+    <button class="cart-btn" onclick="toggleCart(true)">
+      <svg width="22" height="22" fill="none" stroke="#1a1a1a" stroke-width="1.8" viewBox="0 0 24 24">
+        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 01-8 0"/>
+      </svg>
+      <span class="cart-count" id="cartCount" style="display:none">0</span>
+    </button>
+  </nav>
+
+  <!-- ═══════════════ HOME PAGE ═══════════════ -->
+  <div id="page-home" class="page active">
+
+    <!-- HERO -->
+    <section class="hero">
+      <img src="https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=1600&q=90" alt="Hero"/>
+      <div class="hero-line"></div>
+      <div class="hero-content">
+        <p class="hero-eyebrow">New Season · 2025</p>
+        <h1>Define Your<br>Own Drip.</h1>
+        <p>Contemporary fashion meets Kathmandu street culture. Minimal. Bold. Effortless.</p>
+        <div class="hero-btns">
+          <button class="btn-primary" onclick="goTo('men')">Shop Men</button>
+          <button class="btn-outline" onclick="goTo('women')">Shop Women</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURED PRODUCTS -->
+    <section class="section section-sand">
+      <div class="section-header">
+        <div>
+          <p class="section-eyebrow">Handpicked</p>
+          <h2 class="section-title">Featured Products</h2>
+        </div>
+        <span class="view-all">View All →</span>
+      </div>
+      <div class="product-grid" id="featured-grid"></div>
+    </section>
+
+    <!-- PERKS -->
+    <div class="perks">
+      <div class="perk"><span class="perk-icon">🚚</span><span>Free Shipping over NPR 5,000</span></div>
+      <div class="perk"><span class="perk-icon">↩</span><span>Easy 14-Day Returns</span></div>
+      <div class="perk"><span class="perk-icon">📍</span><span>Locally Curated · KTM Made</span></div>
+    </div>
+
+    <!-- EDITORIAL SPLIT -->
+    <div class="editorial">
+      <div class="editorial-panel" onclick="goTo('women')">
+        <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=85" alt="Women"/>
+        <div class="editorial-label">
+          <h3>Women</h3>
+          <span>Shop Collection →</span>
+        </div>
+      </div>
+      <div class="editorial-panel" onclick="goTo('men')">
+        <img src="https://images.unsplash.com/photo-1488161628813-04466f872be2?w=800&q=85" alt="Men"/>
+        <div class="editorial-label">
+          <h3>Men</h3>
+          <span>Shop Collection →</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEW ARRIVALS -->
+    <section class="section section-light">
+      <div class="section-header">
+        <div>
+          <p class="section-eyebrow">Just Dropped</p>
+          <h2 class="section-title">New Arrivals</h2>
+        </div>
+        <span class="view-all">View All →</span>
+      </div>
+      <div class="product-grid" id="new-arrivals-grid"></div>
+    </section>
+
+    <!-- SALE CTA BANNER -->
+    <div class="sale-cta">
+      <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1400&q=85" alt="Sale"/>
+      <div class="sale-cta-content">
+        <p>Limited Time</p>
+        <h2>Up to 37% Off</h2>
+        <button onclick="goTo('sale')">Shop Sale</button>
+      </div>
+    </div>
+
+    <!-- NEWSLETTER -->
+    <section class="newsletter">
+      <p class="section-eyebrow" style="margin-bottom:10px">Stay in the Loop</p>
+      <h2>Join the Drip.</h2>
+      <p>Get early access to new drops, exclusive deals, and style guides — straight to your inbox.</p>
+      <div id="newsletter-wrap">
+        <div class="newsletter-form">
+          <input type="email" id="emailInput" placeholder="your@email.com"/>
+          <button onclick="subscribe()">Subscribe</button>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /page-home -->
+
+  <!-- ═══════════════ MEN PAGE ═══════════════ -->
+  <div id="page-men" class="page">
+    <div class="page-header">
+      <p class="section-eyebrow">Collection</p>
+      <h1>Men's Fashion</h1>
+      <p>Refined streetwear and contemporary essentials — built for Kathmandu's energy.</p>
+    </div>
+    <section class="section section-sand">
+      <div class="filters" id="men-filters"></div>
+      <p class="product-count" id="men-count"></p>
+      <div class="product-grid" id="men-grid"></div>
+    </section>
+  </div>
+
+  <!-- ═══════════════ WOMEN PAGE ═══════════════ -->
+  <div id="page-women" class="page">
+    <div class="page-header">
+      <p class="section-eyebrow">Collection</p>
+      <h1>Women's Fashion</h1>
+      <p>Elevated minimal pieces that move with you — from streets to evenings.</p>
+    </div>
+    <section class="section section-sand">
+      <div class="filters" id="women-filters"></div>
+      <p class="product-count" id="women-count"></p>
+      <div class="product-grid" id="women-grid"></div>
+    </section>
+  </div>
+
+  <!-- ═══════════════ SALE PAGE ═══════════════ -->
+  <div id="page-sale" class="page">
+    <div class="sale-hero">
+      <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1400&q=85" alt="Sale"/>
+      <div class="sale-hero-content">
+        <p class="sale-hero-eyebrow">Limited Time Offer</p>
+        <h1>Season Sale</h1>
+        <p>Up to 37% off — while stocks last</p>
+      </div>
+    </div>
+    <section class="section" style="background:#fff5f5">
+      <div class="sale-stats">
+        <div class="sale-stat"><span class="sale-stat-icon">🔥</span><span>12 Items on Sale</span></div>
+        <div class="sale-stat"><span class="sale-stat-icon">💰</span><span>Up to 37% Off</span></div>
+        <div class="sale-stat"><span class="sale-stat-icon">⚡</span><span>Limited Stock</span></div>
+      </div>
+      <div class="sort-row">
+        <span class="sort-label">Sort By:</span>
+        <div class="filters sort-btns" id="sale-sort"></div>
+      </div>
+      <div class="product-grid" id="sale-grid"></div>
+    </section>
+  </div>
+
+  <!-- ═══════════════ LIFESTYLE PAGE ═══════════════ -->
+  <div id="page-lifestyle" class="page">
+    <div class="coming-soon">
+      <p class="section-eyebrow" style="margin-bottom:10px">Coming Soon</p>
+      <h2>Lifestyle Collection</h2>
+      <p>Home goods, ceramics, candles & more — dropping soon.</p>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <span class="logo">KTMDrip</span>
+    <span class="footer-copy">© 2026 KTMDrip. Kathmandu, Nepal.</span>
+    <div class="footer-links">
+      <span>Privacy</span>
+      <span>Returns</span>
+      <span>Contact</span>
+    </div>
+  </footer>
+
+  <!-- CART OVERLAY & DRAWER -->
+  <div class="overlay" id="overlay" onclick="toggleCart(false)"></div>
+  <div class="drawer" id="drawer">
+    <div class="drawer-head">
+      <h3 id="drawerTitle">Your Cart</h3>
+      <button class="drawer-close" onclick="toggleCart(false)">×</button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+    <div class="drawer-foot" id="drawerFoot" style="display:none">
+      <div class="drawer-subtotal"><span>Subtotal</span><span id="drawerSubtotal"></span></div>
+      <div class="drawer-total"><span>Total</span><span id="drawerTotal"></span></div>
+      <button class="btn-checkout">Checkout</button>
+      <button class="btn-continue" onclick="toggleCart(false)">Continue Shopping</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
