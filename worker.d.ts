@@ -2,6 +2,7 @@ declare namespace Cloudflare {
 	interface GlobalProps {
 		mainModule: typeof import("./workers/app");
 	}
+	// ENV
 	interface Env {
 		KV: KVNamespace;
 		DB: D1Database;
