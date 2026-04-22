@@ -29,35 +29,45 @@ export function generateSessionToken(): string {
     .join("");
 }
 
-/** Parse session token from cookie header */
-export function getSessionToken(request: Request): string | null {
+/** Parse session data from cookie (token + user ID) */
+export function getSessionData(request: Request): { token: string | null; userId: string | null } {
   const cookie = request.headers.get("Cookie") || "";
-  const match = cookie.match(/ktmdrip_session=([^;]+)/);
-  return match ? match[1] : null;
+  const tokenMatch = cookie.match(/ktmdrip_session=([^;]+)/);
+  const userIdMatch = cookie.match(/ktmdrip_user=([^;]+)/);
+  return {
+    token: tokenMatch ? tokenMatch[1] : null,
+    userId: userIdMatch ? userIdMatch[1] : null,
+  };
 }
 
-/** Create a Set-Cookie header for the session */
-export function createSessionCookie(token: string, maxAge = 60 * 60 * 24 * 7): string {
-  return `ktmdrip_session=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}`;
+/** Create session cookies with token + user ID */
+export function createSessionCookie(token: string, userId: number, maxAge = 60 * 60 * 24 * 7): [string, string] {
+  const sessionCookie = `ktmdrip_session=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}`;
+  const userCookie = `ktmdrip_user=${userId}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}`;
+  return [sessionCookie, userCookie];
 }
 
-/** Create a cookie that clears the session */
-export function clearSessionCookie(): string {
-  return `ktmdrip_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`;
+/** Create cookies that clear the session */
+export function clearSessionCookie(): [string, string] {
+  return [
+    `ktmdrip_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`,
+    `ktmdrip_user=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`,
+  ];
 }
 
-/** Get current user from session (using D1 lookup) */
+/** Get current user from session (using user ID stored in cookie) */
 export async function getCurrentUser(
   request: Request,
   env: { DB?: D1Database }
 ): Promise<User | null> {
-  const token = getSessionToken(request);
-  if (!token) return null;
+  const { userId } = getSessionData(request);
+  if (!userId) return null;
 
   try {
     if (env.DB) {
       const user = await env.DB
-        .prepare("SELECT id, email, name, role, created_at FROM users LIMIT 1")
+        .prepare("SELECT id, email, name, role, created_at FROM users WHERE id = ? LIMIT 1")
+        .bind(Number(userId))
         .first<User>();
       return user ?? null;
     }
