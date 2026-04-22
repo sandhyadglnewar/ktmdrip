@@ -4,7 +4,6 @@ declare namespace Cloudflare {
 	}
 	interface Env {
 		KV: KVNamespace;
-		R2: R2Bucket;
 		DB: D1Database;
 		SITE_NAME: "KTMDrip";
 		SITE_URL: "https://ktmdrip.com";

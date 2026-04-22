@@ -16,6 +16,14 @@
       "database_id": "1335d31b-abfd-49aa-bdf0-35a37a8cb3cc"
     }
   ],
+  // KV Namespace — Sessions, Newsletter, Caching
+  "kv_namespaces": [
+    {
+      "binding": "KV",
+      "id": "ktmdrip-kv",
+      "preview_id": "ktmdrip-kv-preview"
+    }
+  ],
   // R2 Bucket — Product Images, Media Assets
   // "r2_buckets": [
   //   {
@@ -31,6 +39,13 @@
           "binding": "DB",
           "database_name": "ktmdrip",
           "database_id": "1335d31b-abfd-49aa-bdf0-35a37a8cb3cc"
+        }
+      ],
+      "kv_namespaces": [
+        {
+          "binding": "KV",
+          "id": "ktmdrip-kv",
+          "preview_id": "ktmdrip-kv-preview"
         }
       ]
     }
