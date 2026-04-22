@@ -1,0 +1,53 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ktmdrip",
+  "compatibility_date": "2025-04-04",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "./workers/app.ts",
+  "vars": {
+    "SITE_NAME": "KTMDrip",
+    "SITE_URL": "https://ktmdrip.com"
+  },
+  // D1 Database — Products, Users, Orders, Ratings
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ktmdrip-db",
+      "database_id": "ktmdrip-db-dev"
+    }
+  ],
+  // KV Namespace — Sessions, Guest Carts, Product Cache
+  "kv_namespaces": [
+    {
+      "binding": "KV",
+      "id": "ktmdrip-kv-dev"
+    }
+  ],
+  // R2 Bucket — Product Images, Media Assets
+  "r2_buckets": [
+    {
+      "binding": "R2",
+      "bucket_name": "ktmdrip-assets"
+    }
+  ],
+  // Local development configuration
+  "env": {
+    "development": {
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "ktmdrip-db",
+          "database_id": "ktmdrip-db-dev",
+          "preview_id": "ktmdrip-db-dev"
+        }
+      ],
+      "kv_namespaces": [
+        {
+          "binding": "KV",
+          "id": "ktmdrip-kv-dev",
+          "preview_id": "ktmdrip-kv-dev"
+        }
+      ]
+    }
+  }
+}
