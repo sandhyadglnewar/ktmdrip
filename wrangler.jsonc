@@ -12,39 +12,25 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "ktmdrip-db",
-      "database_id": "ktmdrip-db-dev"
-    }
-  ],
-  // KV Namespace — Sessions, Guest Carts, Product Cache
-  "kv_namespaces": [
-    {
-      "binding": "KV",
-      "id": "ktmdrip-kv-dev"
+      "database_name": "ktmdrip",
+      "database_id": "1335d31b-abfd-49aa-bdf0-35a37a8cb3cc"
     }
   ],
   // R2 Bucket — Product Images, Media Assets
-  "r2_buckets": [
-    {
-      "binding": "R2",
-      "bucket_name": "ktmdrip-assets"
-    }
-  ],
+  // "r2_buckets": [
+  //   {
+  //     "binding": "R2",
+  //     "bucket_name": "ktmdrip-assets"
+  //   }
+  // ],
   // Local development configuration
   "env": {
     "development": {
       "d1_databases": [
         {
           "binding": "DB",
-          "database_name": "ktmdrip-db",
-          "database_id": "ktmdrip-db-dev",
-        }
-      ],
-      "kv_namespaces": [
-        {
-          "binding": "KV",
-          "id": "ktmdrip-kv-dev",
-          "preview_id": "ktmdrip-kv-dev"
+          "database_name": "ktmdrip",
+          "database_id": "1335d31b-abfd-49aa-bdf0-35a37a8cb3cc"
         }
       ]
     }
