@@ -44,12 +44,15 @@ export interface Order {
   user_id: number | null;
   guest_email: string | null;
   status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
+  payment_status: "unpaid" | "paid" | "action_required" | "failed";
+  payment_method: string | null;
   total: number;
   shipping_name: string;
   shipping_address: string;
   shipping_city: string;
   shipping_phone: string;
   payment_intent_id: string | null;
+  payment_error: string | null;
   created_at: string;
 }
 
@@ -59,6 +62,22 @@ export interface OrderItem {
   product_id: number;
   quantity: number;
   price: number;
+}
+
+export interface OrderPreviewItem {
+  product_id: number;
+  slug: string;
+  name: string;
+  image_url: string;
+  quantity: number;
+  price: number;
+}
+
+export interface OrderWithItems extends Order {
+  customer_label: string;
+  item_count: number;
+  preview_image_url: string | null;
+  items: OrderPreviewItem[];
 }
 
 export interface Rating {

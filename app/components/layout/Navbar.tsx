@@ -7,7 +7,7 @@ export function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { count, toggleCart } = useCart();
-  const { user, isLoggedIn } = useAuth();
+  const { user, isLoggedIn, isAdmin } = useAuth();
   const path = location.pathname;
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchVal, setSearchVal] = useState("");
@@ -41,6 +41,11 @@ export function Navbar() {
             {item.label}
           </Link>
         ))}
+        {isAdmin && (
+          <Link to="/admin" className={`nav-link${path === "/admin" ? " active" : ""}`}>
+            Admin
+          </Link>
+        )}
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
         {/* Search */}

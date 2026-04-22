@@ -7,10 +7,7 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     reactRouter(),
-    {
-      ...cloudflare({ viteEnvironment: { name: "ssr" } }),
-      apply: "build",
-    } as any,
+    cloudflare({ viteEnvironment: { name: "ssr" } }),
   ],
   resolve: {
     tsconfigPaths: true,

@@ -11,8 +11,8 @@ export async function action({ request, context }: Route.ActionArgs) {
   }
 
   try {
-    const body = await request.json();
-    const email = body?.email?.trim();
+    const body = (await request.json()) as { email?: string };
+    const email = body.email?.trim();
 
     if (!email || !email.includes("@")) {
       return Response.json({ error: "Invalid email" }, { status: 400 });
@@ -27,10 +27,11 @@ export async function action({ request, context }: Route.ActionArgs) {
           .prepare("INSERT OR IGNORE INTO newsletter_subscribers (email) VALUES (?)")
           .bind(email)
           .run();
+      } else {
+        throw new Error("Cloudflare D1 is not available for newsletter subscriptions.");
       }
     } catch {
-      // D1 not configured — log for now
-      console.log("[Newsletter] New subscriber:", email);
+      return Response.json({ error: "Cloudflare D1 is not available for newsletter subscriptions." }, { status: 500 });
     }
 
     // Also try KV for fast lookup / caching

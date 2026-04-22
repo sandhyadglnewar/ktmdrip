@@ -2,8 +2,14 @@
 -- KTMDrip — Seed Data
 -- ═══════════════════════════════════════════
 
+-- Default Admin User
+-- Email: admin@ktmdrip.com
+-- Password: Admin@12345
+INSERT OR IGNORE INTO users (name, email, password_hash, role) VALUES
+  ('KTMDrip Admin', 'admin@ktmdrip.com', '6f2cb9dd8f4b65e24e1c3f3fa5bc57982349237f11abceacd45bbcb74d621c25', 'admin');
+
 -- Men's Products
-INSERT INTO products (name, slug, description, price, tag, category, gender, image_url, featured, is_new) VALUES
+INSERT OR IGNORE INTO products (name, slug, description, price, tag, category, gender, image_url, featured, is_new) VALUES
   ('Oversized Graphic Tee',  'oversized-graphic-tee',  'Bold streetwear essential with contemporary Kathmandu-inspired graphics.',                     2800, 'New',        'Tops',      'men', 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=600&q=85', 1, 1),
   ('Slim Fit Chinos',        'slim-fit-chinos',        'Tailored slim-fit chinos in premium stretch cotton. Perfect from office to evening.',          3500, 'Popular',    'Bottoms',   'men', 'https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=600&q=85', 1, 0),
   ('Bomber Jacket',          'bomber-jacket',          'Classic bomber silhouette reimagined with modern proportions and premium hardware.',            6800, 'Featured',   'Outerwear', 'men', 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=600&q=85', 0, 1),
@@ -16,7 +22,7 @@ INSERT INTO products (name, slug, description, price, tag, category, gender, ima
   ('Classic Trench Coat',    'classic-trench-coat',    'Timeless trench coat with modern proportions. Water-resistant cotton-blend.',                   8500, 'Signature',  'Outerwear', 'men', 'https://images.unsplash.com/photo-1544022613-e87ca75a784a?w=600&q=85', 0, 0);
 
 -- Women's Products
-INSERT INTO products (name, slug, description, price, tag, category, gender, image_url, featured, is_new) VALUES
+INSERT OR IGNORE INTO products (name, slug, description, price, tag, category, gender, image_url, featured, is_new) VALUES
   ('Wrap Midi Dress',          'wrap-midi-dress',          'Flattering wrap silhouette in flowing crepe fabric. Day-to-night versatility.',             4500, 'Bestseller', 'Dresses',   'women', 'https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=600&q=85', 1, 0),
   ('Linen Wide-Leg Trousers',  'linen-wide-leg-trousers',  'Relaxed wide-leg trousers in premium European linen. Effortlessly chic.',                 4500, 'Popular',    'Bottoms',   'women', 'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=600&q=85', 1, 0),
   ('Structured Blazer',        'structured-blazer',        'Power blazer with structured shoulders and nipped waist. Boardroom to bar.',               7200, 'Featured',   'Outerwear', 'women', 'https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=600&q=85', 0, 1),
@@ -29,7 +35,7 @@ INSERT INTO products (name, slug, description, price, tag, category, gender, ima
   ('Belted Trench Coat',       'belted-trench-coat',       'Classic trench reimagined with statement belt and modern proportions.',                    8200, 'Premium',    'Outerwear', 'women', 'https://images.unsplash.com/photo-1554568218-0f1715e72254?w=600&q=85', 0, 0);
 
 -- Sale Products (reference original products with sale pricing)
-INSERT INTO products (name, slug, description, price, sale_price, discount, tag, category, gender, image_url, featured, is_new) VALUES
+INSERT OR IGNORE INTO products (name, slug, description, price, sale_price, discount, tag, category, gender, image_url, featured, is_new) VALUES
   ('Bomber Jacket — Sale',           'bomber-jacket-sale',           'Classic bomber silhouette — now at an incredible price.',             6800, 4599, 32, 'Sale', 'Outerwear', 'men',   'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=600&q=85', 0, 0),
   ('Merino Knit Sweater — Sale',     'merino-knit-sweater-sale',     'Luxurious merino wool knit — limited time offer.',                    4800, 3199, 33, 'Sale', 'Tops',      'men',   'https://images.unsplash.com/photo-1516826957135-700dedea698c?w=600&q=85', 0, 0),
   ('Cargo Utility Pants — Sale',     'cargo-utility-pants-sale',     'Functional cargo pants — grab them before they go.',                  4200, 2799, 33, 'Sale', 'Bottoms',   'men',   'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=600&q=85', 0, 0),

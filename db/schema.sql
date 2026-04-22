@@ -37,12 +37,15 @@ CREATE TABLE IF NOT EXISTS orders (
   user_id INTEGER,
   guest_email TEXT,
   status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'confirmed', 'shipped', 'delivered', 'cancelled')),
+  payment_status TEXT NOT NULL DEFAULT 'unpaid' CHECK(payment_status IN ('unpaid', 'paid', 'action_required', 'failed')),
+  payment_method TEXT,
   total INTEGER NOT NULL,
   shipping_name TEXT NOT NULL DEFAULT '',
   shipping_address TEXT NOT NULL DEFAULT '',
   shipping_city TEXT NOT NULL DEFAULT '',
   shipping_phone TEXT NOT NULL DEFAULT '',
   payment_intent_id TEXT,
+  payment_error TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (user_id) REFERENCES users(id)
 );

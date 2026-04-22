@@ -1,8 +1,9 @@
 import { Link } from "react-router";
 import type { Route } from "./+types/home";
-import { MEN_PRODUCTS, WOMEN_PRODUCTS } from "~/lib/data";
 import { ProductGrid } from "~/components/ui/ProductGrid";
 import { Newsletter } from "~/components/ui/Newsletter";
+import { SetupNotice } from "~/components/ui/SetupNotice";
+import { getFeaturedAndNewArrivals } from "~/lib/catalog.server";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -11,16 +12,28 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-export function loader({ context }: Route.LoaderArgs) {
-  // TODO: Replace with D1 query when database is configured
-  // const db = context.cloudflare.env.DB;
-  // const featured = await db.prepare("SELECT * FROM products WHERE featured = 1 LIMIT 4").all();
-  const featured = [...MEN_PRODUCTS.filter(p => p.featured), ...WOMEN_PRODUCTS.filter(p => p.featured)].slice(0, 4);
-  const newArrivals = [...MEN_PRODUCTS.filter(p => p.is_new), ...WOMEN_PRODUCTS.filter(p => p.is_new)].slice(0, 4);
-  return { featured, newArrivals };
+export async function loader({ context }: Route.LoaderArgs) {
+  const env = context?.cloudflare?.env || {};
+  try {
+    return { ...(await getFeaturedAndNewArrivals(env as Partial<Env>)), setupRequired: false as const };
+  } catch (error) {
+    return {
+      featured: [],
+      newArrivals: [],
+      setupRequired: true as const,
+      setupMessage:
+        error instanceof Error
+          ? `${error.message} Visit /seed to create the admin user and load products into local D1.`
+          : "Visit /seed to initialize local D1.",
+    };
+  }
 }
 
 export default function Home({ loaderData }: Route.ComponentProps) {
+  if (loaderData.setupRequired) {
+    return <SetupNotice message={loaderData.setupMessage} />;
+  }
+
   const { featured, newArrivals } = loaderData;
 
   return (

@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 import type { Route } from "./+types/login";
+import { createSessionCookie, generateSessionToken, saveSession, verifyPassword } from "~/lib/auth.server";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -11,49 +12,42 @@ export function meta({}: Route.MetaArgs) {
 
 export async function action({ request, context }: Route.ActionArgs) {
   const form = await request.formData();
-  const email = form.get("email") as string;
+  const email = String(form.get("email") || "").trim().toLowerCase();
   const password = form.get("password") as string;
 
   if (!email || !password) {
     return { error: "Email and password are required." };
   }
 
-  try {
-    const { hashPassword, generateSessionToken, createSessionCookie, saveSession } = await import("~/lib/auth.server");
-    const env = context?.cloudflare?.env || {};
-    const db = (env as any).DB as D1Database | undefined;
-
-    if (db) {
-      const hash = await hashPassword(password);
-      const user = await db.prepare("SELECT * FROM users WHERE email = ? AND password_hash = ?").bind(email, hash).first();
-      if (!user) return { error: "Invalid email or password." };
-
-      const token = generateSessionToken();
-      await saveSession(env as any, token, user as any);
-
-      return new Response(null, {
-        status: 302,
-        headers: {
-          Location: "/",
-          "Set-Cookie": createSessionCookie(token),
-        },
-      });
-    }
-  } catch {
-    // D1 not available
+  const env = context?.cloudflare?.env || {};
+  const db = (env as any).DB as D1Database | undefined;
+  if (!db) {
+    return { error: "Cloudflare D1 is not available in this dev session. Start the app with the Cloudflare Vite plugin and run /seed." };
   }
 
-  // Demo mode: allow any login
-  const { generateSessionToken, createSessionCookie, saveSession } = await import("~/lib/auth.server");
+  const record = await db
+    .prepare("SELECT id, email, name, role, created_at, password_hash FROM users WHERE email = ? LIMIT 1")
+    .bind(email)
+    .first<{ id: number; email: string; name: string; role: "customer" | "admin"; created_at: string; password_hash: string }>();
+
+  if (!record || !(await verifyPassword(password, record.password_hash))) {
+    return { error: "Invalid email or password." };
+  }
+
   const token = generateSessionToken();
-  const demoUser = { id: 1, email, name: email.split("@")[0], role: email.includes("admin") ? "admin" as const : "customer" as const, created_at: new Date().toISOString() };
-  const env = context?.cloudflare?.env || {};
-  await saveSession(env as any, token, demoUser);
+  const user = {
+    id: record.id,
+    email: record.email,
+    name: record.name,
+    role: record.role,
+    created_at: record.created_at,
+  };
+  await saveSession(env as any, token, user);
 
   return new Response(null, {
     status: 302,
     headers: {
-      Location: demoUser.role === "admin" ? "/admin" : "/",
+      Location: user.role === "admin" ? "/admin" : "/",
       "Set-Cookie": createSessionCookie(token),
     },
   });
@@ -90,6 +84,19 @@ export default function Login({ actionData }: Route.ComponentProps) {
           </div>
           <button type="submit" className="btn-primary" style={{ width: "100%", marginTop: 8 }}>Sign In</button>
         </form>
+
+        <div className="order-card" style={{ marginTop: 18 }}>
+          <div className="order-card-header">
+            <span className="order-id">Admin Access</span>
+            <span className="order-status" style={{ background: "var(--color-teal)" }}>Same Login</span>
+          </div>
+          <div className="order-card-body" style={{ display: "block" }}>
+            <p style={{ marginBottom: 6 }}>Use the normal sign-in form for both customer and admin accounts.</p>
+            <p><strong>Admin email:</strong> admin@ktmdrip.com</p>
+            <p><strong>Password:</strong> Admin@12345</p>
+            <p style={{ marginTop: 6 }}>Run <code>/seed</code> first if the admin account does not exist yet.</p>
+          </div>
+        </div>
 
         <p className="auth-switch">
           Don't have an account? <Link to="/register">Create one →</Link>

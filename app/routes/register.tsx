@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import type { Route } from "./+types/register";
+import { createSessionCookie, generateSessionToken, hashPassword, saveSession } from "~/lib/auth.server";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -11,8 +12,8 @@ export function meta({}: Route.MetaArgs) {
 
 export async function action({ request, context }: Route.ActionArgs) {
   const form = await request.formData();
-  const name = form.get("name") as string;
-  const email = form.get("email") as string;
+  const name = String(form.get("name") || "").trim();
+  const email = String(form.get("email") || "").trim().toLowerCase();
   const password = form.get("password") as string;
 
   if (!name || !email || !password) {
@@ -22,37 +23,30 @@ export async function action({ request, context }: Route.ActionArgs) {
     return { error: "Password must be at least 6 characters." };
   }
 
-  try {
-    const { hashPassword, generateSessionToken, createSessionCookie, saveSession } = await import("~/lib/auth.server");
-    const env = context?.cloudflare?.env || {};
-    const db = (env as any).DB as D1Database | undefined;
-
-    if (db) {
-      const existing = await db.prepare("SELECT id FROM users WHERE email = ?").bind(email).first();
-      if (existing) return { error: "An account with this email already exists." };
-
-      const hash = await hashPassword(password);
-      const result = await db.prepare("INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)").bind(name, email, hash).run();
-
-      const token = generateSessionToken();
-      const user = { id: result.meta.last_row_id as number, email, name, role: "customer" as const, created_at: new Date().toISOString() };
-      await saveSession(env as any, token, user);
-
-      return new Response(null, {
-        status: 302,
-        headers: { Location: "/", "Set-Cookie": createSessionCookie(token) },
-      });
-    }
-  } catch {
-    // D1 not available
+  const env = context?.cloudflare?.env || {};
+  const db = (env as any).DB as D1Database | undefined;
+  if (!db) {
+    return { error: "Cloudflare D1 is not available in this dev session. Start the app with the Cloudflare Vite plugin and run /seed." };
   }
 
-  // Demo mode
-  const { generateSessionToken, createSessionCookie, saveSession } = await import("~/lib/auth.server");
+  const existing = await db.prepare("SELECT id FROM users WHERE email = ?").bind(email).first();
+  if (existing) return { error: "An account with this email already exists." };
+
+  const hash = await hashPassword(password);
+  const result = await db
+    .prepare("INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)")
+    .bind(name, email, hash)
+    .run();
+
   const token = generateSessionToken();
-  const demoUser = { id: Date.now(), email, name, role: "customer" as const, created_at: new Date().toISOString() };
-  const env = context?.cloudflare?.env || {};
-  await saveSession(env as any, token, demoUser);
+  const user = {
+    id: Number(result.meta.last_row_id),
+    email,
+    name,
+    role: "customer" as const,
+    created_at: new Date().toISOString(),
+  };
+  await saveSession(env as any, token, user);
 
   return new Response(null, {
     status: 302,

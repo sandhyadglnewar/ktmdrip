@@ -10,6 +10,7 @@ import {
 import type { Route } from "./+types/root";
 import { CartProvider } from "./lib/cart";
 import { AuthProvider } from "./lib/auth.context";
+import { getRequiredCloudflareEnv } from "./lib/env.server";
 import { getCurrentUser } from "./lib/auth.server";
 import { Navbar } from "./components/layout/Navbar";
 import { Footer } from "./components/layout/Footer";
@@ -26,9 +27,8 @@ export const links: Route.LinksFunction = () => [
 ];
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-  // Handle dev mode where context.cloudflare might be undefined
-  const env = context?.cloudflare?.env || {};
-  const user = await getCurrentUser(request, env as any);
+  const env = getRequiredCloudflareEnv(context);
+  const user = await getCurrentUser(request, env);
   return { user };
 }
 
@@ -40,6 +40,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
+        <script async src="https://js.stripe.com/v3/" />
       </head>
       <body>
         {children}
@@ -77,6 +78,8 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   } else if (import.meta.env.DEV && error && error instanceof Error) {
     details = error.message;
     stack = error.stack;
+  } else if (error instanceof Error) {
+    details = error.message;
   }
 
   return (
@@ -86,6 +89,9 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
         <div style={{ padding: "80px 36px", textAlign: "center", background: "var(--color-light)", minHeight: "60vh" }}>
           <h1 style={{ fontFamily: "var(--font-display)", fontSize: 64, letterSpacing: 4, marginBottom: 16 }}>{message}</h1>
           <p style={{ color: "var(--color-mid)", fontSize: 14 }}>{details}</p>
+          <p style={{ color: "var(--color-mid)", fontSize: 13, marginTop: 12 }}>
+            Local Cloudflare setup: run <code>npm run dev</code>, then open <code>/seed</code>.
+          </p>
           {stack && (
             <pre style={{ marginTop: 24, textAlign: "left", maxWidth: 600, margin: "24px auto", overflow: "auto", fontSize: 12, padding: 16, background: "#fff" }}>
               <code>{stack}</code>

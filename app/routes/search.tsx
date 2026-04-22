@@ -1,31 +1,42 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router";
 import type { Route } from "./+types/search";
-import { ALL_PRODUCTS } from "~/lib/data";
 import { ProductGrid } from "~/components/ui/ProductGrid";
+import { SetupNotice } from "~/components/ui/SetupNotice";
+import { getProducts } from "~/lib/catalog.server";
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Search — KTMDrip" }];
 }
 
-export function loader({ request }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
   const url = new URL(request.url);
   const q = (url.searchParams.get("q") || "").toLowerCase().trim();
 
-  if (!q) return { products: [], query: "" };
+  if (!q) return { products: [], query: "", setupRequired: false as const };
 
-  const products = ALL_PRODUCTS.filter((p) =>
-    p.name.toLowerCase().includes(q) ||
-    p.category.toLowerCase().includes(q) ||
-    p.tag.toLowerCase().includes(q) ||
-    p.description.toLowerCase().includes(q) ||
-    p.gender.toLowerCase().includes(q)
-  );
-
-  return { products, query: q };
+  const env = context?.cloudflare?.env || {};
+  try {
+    const products = await getProducts(env as Partial<Env>, { query: q });
+    return { products, query: q, setupRequired: false as const };
+  } catch (error) {
+    return {
+      products: [],
+      query: q,
+      setupRequired: true as const,
+      setupMessage:
+        error instanceof Error
+          ? `${error.message} Visit /seed to load products into local D1 before searching.`
+          : "Visit /seed to load products into local D1 before searching.",
+    };
+  }
 }
 
 export default function Search({ loaderData }: Route.ComponentProps) {
+  if (loaderData.setupRequired) {
+    return <SetupNotice title="Search Not Ready" message={loaderData.setupMessage} />;
+  }
+
   const { products, query } = loaderData;
   const [searchParams, setSearchParams] = useSearchParams();
   const [input, setInput] = useState(query);

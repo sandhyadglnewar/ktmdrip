@@ -59,13 +59,49 @@ export async function getCurrentUser(
     if (env.KV) {
       const sessionData = await env.KV.get(`session:${token}`);
       if (sessionData) {
-        return JSON.parse(sessionData) as User;
+        const sessionUser = JSON.parse(sessionData) as User;
+
+        if (env.DB && sessionUser.id) {
+          const freshUser = await env.DB
+            .prepare("SELECT id, email, name, role, created_at FROM users WHERE id = ? LIMIT 1")
+            .bind(sessionUser.id)
+            .first<User>();
+
+          return freshUser ?? sessionUser;
+        }
+
+        return sessionUser;
       }
     }
+
   } catch {
     // KV not available
   }
   return null;
+}
+
+export async function requireUser(
+  request: Request,
+  env: { KV?: KVNamespace; DB?: D1Database }
+): Promise<User> {
+  const user = await getCurrentUser(request, env);
+  if (!user) {
+    throw new Response(null, { status: 302, headers: { Location: "/login" } });
+  }
+
+  return user;
+}
+
+export async function requireAdmin(
+  request: Request,
+  env: { KV?: KVNamespace; DB?: D1Database }
+): Promise<User> {
+  const user = await requireUser(request, env);
+  if (user.role !== "admin") {
+    throw new Response(null, { status: 302, headers: { Location: "/" } });
+  }
+
+  return user;
 }
 
 /** Save session to KV */

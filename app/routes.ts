@@ -8,11 +8,13 @@ export default [
   route("lifestyle", "routes/lifestyle.tsx"),
   route("search", "routes/search.tsx"),
   route("product/:slug", "routes/product.tsx"),
+  route("seed", "routes/seed.tsx"),
   route("login", "routes/login.tsx"),
   route("register", "routes/register.tsx"),
   route("logout", "routes/logout.tsx"),
   route("profile", "routes/profile.tsx"),
   route("checkout", "routes/checkout.tsx"),
   route("admin", "routes/admin.tsx"),
+  route("api/payment-intent", "routes/api.payment-intent.ts"),
   route("api/newsletter", "routes/api.newsletter.ts"),
 ] satisfies RouteConfig;

@@ -1,8 +1,9 @@
 import { useState } from "react";
 import type { Route } from "./+types/sale";
-import { SALE_PRODUCTS } from "~/lib/data";
 import { ProductGrid } from "~/components/ui/ProductGrid";
 import { FilterBar } from "~/components/ui/FilterBar";
+import { SetupNotice } from "~/components/ui/SetupNotice";
+import { getProducts } from "~/lib/catalog.server";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -11,11 +12,27 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-export function loader({}: Route.LoaderArgs) {
-  return { products: SALE_PRODUCTS };
+export async function loader({ context }: Route.LoaderArgs) {
+  const env = context?.cloudflare?.env || {};
+  try {
+    return { products: await getProducts(env as Partial<Env>, { onSale: true }), setupRequired: false as const };
+  } catch (error) {
+    return {
+      products: [],
+      setupRequired: true as const,
+      setupMessage:
+        error instanceof Error
+          ? `${error.message} Visit /seed to load sale products into local D1.`
+          : "Visit /seed to load sale products into local D1.",
+    };
+  }
 }
 
 export default function Sale({ loaderData }: Route.ComponentProps) {
+  if (loaderData.setupRequired) {
+    return <SetupNotice title="Sale Catalog Not Ready" message={loaderData.setupMessage} />;
+  }
+
   const { products } = loaderData;
   const [sortBy, setSortBy] = useState("discount");
 
