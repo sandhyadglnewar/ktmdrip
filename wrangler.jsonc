@@ -44,8 +44,7 @@
       "kv_namespaces": [
         {
           "binding": "KV",
-          "id": "ktmdrip-kv",
-          "preview_id": "ktmdrip-kv-preview"
+          "id": "ktmdrip",
         }
       ]
     }
