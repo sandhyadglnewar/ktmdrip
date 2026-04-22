@@ -5,6 +5,25 @@
 
 import type { User } from "./types";
 
+const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;
+const SESSION_TTL_MS = SESSION_TTL_SECONDS * 1000;
+
+async function ensureSessionsTable(db: D1Database): Promise<void> {
+  await db.batch([
+    db.prepare(
+      `CREATE TABLE IF NOT EXISTS sessions (
+        token TEXT PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        expires_at INTEGER NOT NULL,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )`
+    ),
+    db.prepare("CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id)"),
+    db.prepare("CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at)"),
+  ]);
+}
+
 /** Hash a password using Web Crypto (edge-compatible) */
 export async function hashPassword(password: string): Promise<string> {
   const encoder = new TextEncoder();
@@ -29,50 +48,54 @@ export function generateSessionToken(): string {
     .join("");
 }
 
-/** Parse session data from cookie (token + user ID) */
-export function getSessionData(request: Request): { token: string | null; userId: string | null } {
+/** Parse session token from cookie header */
+export function getSessionToken(request: Request): string | null {
   const cookie = request.headers.get("Cookie") || "";
-  const tokenMatch = cookie.match(/ktmdrip_session=([^;]+)/);
-  const userIdMatch = cookie.match(/ktmdrip_user=([^;]+)/);
-  return {
-    token: tokenMatch ? tokenMatch[1] : null,
-    userId: userIdMatch ? userIdMatch[1] : null,
-  };
+  const match = cookie.match(/ktmdrip_session=([^;]+)/);
+  return match ? match[1] : null;
 }
 
-/** Create session cookies with token + user ID */
-export function createSessionCookie(token: string, userId: number, maxAge = 60 * 60 * 24 * 7): [string, string] {
-  const sessionCookie = `ktmdrip_session=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}`;
-  const userCookie = `ktmdrip_user=${userId}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}`;
-  return [sessionCookie, userCookie];
+/** Create a Set-Cookie header for the session */
+export function createSessionCookie(token: string, maxAge = SESSION_TTL_SECONDS): string {
+  return `ktmdrip_session=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}`;
 }
 
-/** Create cookies that clear the session */
-export function clearSessionCookie(): [string, string] {
-  return [
-    `ktmdrip_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`,
-    `ktmdrip_user=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`,
-  ];
+/** Create a cookie that clears the session */
+export function clearSessionCookie(): string {
+  return `ktmdrip_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`;
 }
 
-/** Get current user from session (using user ID stored in cookie) */
+/** Get current user from session (using D1) */
 export async function getCurrentUser(
   request: Request,
   env: { DB?: D1Database }
 ): Promise<User | null> {
-  const { userId } = getSessionData(request);
-  if (!userId) return null;
+  const token = getSessionToken(request);
+  if (!token) return null;
+
+  if (!env.DB) return null;
 
   try {
-    if (env.DB) {
-      const user = await env.DB
-        .prepare("SELECT id, email, name, role, created_at FROM users WHERE id = ? LIMIT 1")
-        .bind(Number(userId))
-        .first<User>();
-      return user ?? null;
+    await ensureSessionsTable(env.DB);
+
+    const session = await env.DB
+      .prepare(
+        `SELECT u.id, u.email, u.name, u.role, u.created_at
+         FROM sessions s
+         JOIN users u ON u.id = s.user_id
+         WHERE s.token = ? AND s.expires_at > ?
+         LIMIT 1`
+      )
+      .bind(token, Date.now())
+      .first<User>();
+
+    if (session) {
+      return session;
     }
+
+    await env.DB.prepare("DELETE FROM sessions WHERE token = ? OR expires_at <= ?").bind(token, Date.now()).run();
   } catch {
-    // DB not available
+    // Ignore auth storage lookup failures and treat the request as logged out.
   }
   return null;
 }
@@ -101,19 +124,32 @@ export async function requireAdmin(
   return user;
 }
 
-/** Save session (cookie-based, no KV needed) */
+/** Save session to D1 */
 export async function saveSession(
-  env: object,
+  env: { DB?: D1Database },
   token: string,
   user: User
 ): Promise<void> {
-  // Session is stored in cookie, no additional storage needed
+  if (!env.DB) {
+    return;
+  }
+
+  await ensureSessionsTable(env.DB);
+
+  const expiresAt = Date.now() + SESSION_TTL_MS;
+  await env.DB
+    .prepare("INSERT OR REPLACE INTO sessions (token, user_id, expires_at) VALUES (?, ?, ?)")
+    .bind(token, user.id, expiresAt)
+    .run();
 }
 
-/** Delete session (cookie-based, no KV needed) */
+/** Delete session from D1 */
 export async function deleteSession(
-  env: object,
+  env: { DB?: D1Database },
   token: string
 ): Promise<void> {
-  // Session cleared via cookie expiration
+  if (!env.DB) return;
+
+  await ensureSessionsTable(env.DB);
+  await env.DB.prepare("DELETE FROM sessions WHERE token = ?").bind(token).run();
 }

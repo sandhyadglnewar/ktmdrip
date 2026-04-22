@@ -48,13 +48,9 @@ export async function action({ request, context }: Route.ActionArgs) {
   };
   await saveSession(env as any, token, user);
 
-  const [sessionCookie, userCookie] = createSessionCookie(token, user.id);
   return new Response(null, {
     status: 302,
-    headers: { 
-      Location: "/", 
-      "Set-Cookie": [sessionCookie, userCookie]
-    },
+    headers: { Location: "/", "Set-Cookie": createSessionCookie(token) },
   });
 }
 

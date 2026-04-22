@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════
 // KTMDrip — Newsletter API Endpoint
-// Stores subscriber emails in D1 (with fallback)
+// Stores subscriber emails in D1
 // ═══════════════════════════════════════════
 
 import type { Route } from "./+types/api.newsletter";
@@ -18,18 +18,17 @@ export async function action({ request, context }: Route.ActionArgs) {
       return Response.json({ error: "Invalid email" }, { status: 400 });
     }
 
-    // D1 database for storage
     try {
       const env = context?.cloudflare?.env || {};
       const db = (env as any).DB;
-      if (db) {
-        await db
-          .prepare("INSERT OR IGNORE INTO newsletter_subscribers (email) VALUES (?)")
-          .bind(email)
-          .run();
-      } else {
+      if (!db) {
         throw new Error("Cloudflare D1 is not available for newsletter subscriptions.");
       }
+
+      await db
+        .prepare("INSERT OR IGNORE INTO newsletter_subscribers (email) VALUES (?)")
+        .bind(email)
+        .run();
     } catch {
       return Response.json({ error: "Cloudflare D1 is not available for newsletter subscriptions." }, { status: 500 });
     }

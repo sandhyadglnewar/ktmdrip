@@ -1,8 +1,7 @@
 declare namespace Cloudflare {
 	interface GlobalProps {
-		mainModulde: typeof import("./workers/app");
+		mainModule: typeof import("./workers/app");
 	}
-	// ENV
 	interface Env {
 		DB: D1Database;
 		SITE_NAME: "KTMDrip";

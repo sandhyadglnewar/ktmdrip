@@ -6,7 +6,7 @@
   "main": "./workers/app.ts",
   "vars": {
     "SITE_NAME": "KTMDrip",
-    "SITE_URL": "https://ktmdrip.com",
+    "SITE_URL": "https://ktmdrip.com"
   },
   // D1 Database — Products, Users, Orders, Ratings
   "d1_databases": [
@@ -16,13 +16,6 @@
       "database_id": "1335d31b-abfd-49aa-bdf0-35a37a8cb3cc"
     }
   ],
-  // R2 Bucket — Product Images, Media Assets
-  // "r2_buckets": [
-  //   {
-  //     "binding": "R2",
-  //     "bucket_name": "ktmdrip-assets"
-  //   }
-  // ],
   // Local development configuration
   "env": {
     "development": {
@@ -32,8 +25,7 @@
           "database_name": "ktmdrip",
           "database_id": "1335d31b-abfd-49aa-bdf0-35a37a8cb3cc"
         }
-      ],
-
+      ]
     }
   }
 }

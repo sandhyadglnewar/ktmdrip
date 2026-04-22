@@ -1,7 +1,7 @@
 import { slugify } from "./utils";
 import type { Order, OrderWithItems, Product, Rating, User } from "./types";
 
-type AppEnv = Partial<Pick<Env, "DB" | "KV">>;
+type AppEnv = Partial<Pick<Env, "DB">>;
 
 export interface ProductReviewSummary {
   averageRating: number;

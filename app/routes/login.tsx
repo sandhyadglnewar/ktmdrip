@@ -44,12 +44,11 @@ export async function action({ request, context }: Route.ActionArgs) {
   };
   await saveSession(env as any, token, user);
 
-  const [sessionCookie, userCookie] = createSessionCookie(token, record.id);
   return new Response(null, {
     status: 302,
     headers: {
       Location: user.role === "admin" ? "/admin" : "/",
-      "Set-Cookie": [sessionCookie, userCookie],
+      "Set-Cookie": createSessionCookie(token),
     },
   });
 }

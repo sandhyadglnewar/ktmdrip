@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════
 // KTMDrip — Cart Context (Client-side state)
 // Uses React Context + localStorage persistence
-// Future: sync with KV for guest carts
+// Future: sync guest carts with persistent storage if needed
 // ═══════════════════════════════════════════
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
