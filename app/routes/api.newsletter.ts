@@ -18,7 +18,7 @@ export async function action({ request, context }: Route.ActionArgs) {
       return Response.json({ error: "Invalid email" }, { status: 400 });
     }
 
-    // Try D1 database if available
+    // D1 database for storage
     try {
       const env = context?.cloudflare?.env || {};
       const db = (env as any).DB;
@@ -32,17 +32,6 @@ export async function action({ request, context }: Route.ActionArgs) {
       }
     } catch {
       return Response.json({ error: "Cloudflare D1 is not available for newsletter subscriptions." }, { status: 500 });
-    }
-
-    // Also try KV for fast lookup / caching
-    try {
-      const env = context?.cloudflare?.env || {};
-      const kv = (env as any).KV;
-      if (kv) {
-        await kv.put(`newsletter:${email}`, JSON.stringify({ email, subscribedAt: new Date().toISOString() }));
-      }
-    } catch {
-      // KV not configured
     }
 
     return Response.json({ success: true });

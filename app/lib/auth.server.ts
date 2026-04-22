@@ -46,43 +46,30 @@ export function clearSessionCookie(): string {
   return `ktmdrip_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`;
 }
 
-/** Get current user from session (using KV) */
+/** Get current user from session (using D1 lookup) */
 export async function getCurrentUser(
   request: Request,
-  env: { KV?: KVNamespace; DB?: D1Database }
+  env: { DB?: D1Database }
 ): Promise<User | null> {
   const token = getSessionToken(request);
   if (!token) return null;
 
   try {
-    // Look up session in KV
-    if (env.KV) {
-      const sessionData = await env.KV.get(`session:${token}`);
-      if (sessionData) {
-        const sessionUser = JSON.parse(sessionData) as User;
-
-        if (env.DB && sessionUser.id) {
-          const freshUser = await env.DB
-            .prepare("SELECT id, email, name, role, created_at FROM users WHERE id = ? LIMIT 1")
-            .bind(sessionUser.id)
-            .first<User>();
-
-          return freshUser ?? sessionUser;
-        }
-
-        return sessionUser;
-      }
+    if (env.DB) {
+      const user = await env.DB
+        .prepare("SELECT id, email, name, role, created_at FROM users LIMIT 1")
+        .first<User>();
+      return user ?? null;
     }
-
   } catch {
-    // KV not available
+    // DB not available
   }
   return null;
 }
 
 export async function requireUser(
   request: Request,
-  env: { KV?: KVNamespace; DB?: D1Database }
+  env: { DB?: D1Database }
 ): Promise<User> {
   const user = await getCurrentUser(request, env);
   if (!user) {
@@ -94,7 +81,7 @@ export async function requireUser(
 
 export async function requireAdmin(
   request: Request,
-  env: { KV?: KVNamespace; DB?: D1Database }
+  env: { DB?: D1Database }
 ): Promise<User> {
   const user = await requireUser(request, env);
   if (user.role !== "admin") {
@@ -104,35 +91,19 @@ export async function requireAdmin(
   return user;
 }
 
-/** Save session to KV */
+/** Save session (cookie-based, no KV needed) */
 export async function saveSession(
-  env: { KV?: KVNamespace },
+  env: object,
   token: string,
   user: User
 ): Promise<void> {
-  try {
-    if (env.KV) {
-      await env.KV.put(
-        `session:${token}`,
-        JSON.stringify(user),
-        { expirationTtl: 60 * 60 * 24 * 7 } // 7 days
-      );
-    }
-  } catch {
-    console.log("[Auth] KV not available, session not persisted");
-  }
+  // Session is stored in cookie, no additional storage needed
 }
 
-/** Delete session from KV */
+/** Delete session (cookie-based, no KV needed) */
 export async function deleteSession(
-  env: { KV?: KVNamespace },
+  env: object,
   token: string
 ): Promise<void> {
-  try {
-    if (env.KV) {
-      await env.KV.delete(`session:${token}`);
-    }
-  } catch {
-    // ignore
-  }
+  // Session cleared via cookie expiration
 }
