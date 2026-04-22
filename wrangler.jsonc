@@ -7,8 +7,6 @@
   "vars": {
     "SITE_NAME": "KTMDrip",
     "SITE_URL": "https://ktmdrip.com",
-    "STRIPE_SECRET": "",
-    "STRIPE_PUBLIC": ""
   },
   // D1 Database — Products, Users, Orders, Ratings
   "d1_databases": [
